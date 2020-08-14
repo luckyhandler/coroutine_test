@@ -44,3 +44,6 @@ java.lang.IllegalStateException: This job has not completed yet
 	at com.intellij.rt.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:230)
 	at com.intellij.rt.junit.JUnitStarter.main(JUnitStarter.java:58)
 ```
+
+**UPDATE**
+The issue is Flow, when using Mockito the code is working as expected --> to see the working solution check out the mockito-Branch
