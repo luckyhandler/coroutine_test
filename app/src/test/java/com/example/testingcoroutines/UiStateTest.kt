@@ -1,14 +1,16 @@
 package com.example.testingcoroutines
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.asFlow
+import androidx.lifecycle.Observer
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
@@ -19,6 +21,9 @@ class UiStateTest {
 
     @get:Rule
     val testCoroutineRule = TestCoroutineRule()
+
+    @Mock
+    var observer: Observer<UiState> = mock()
 
     private lateinit var viewModel: ViewModel
     private lateinit var expectedResult: List<Astronaut>
@@ -32,16 +37,15 @@ class UiStateTest {
             repository = repository
         )
         expectedResult = (repository.getData() as NetworkResult.Success).data
+        viewModel.stateLiveData.observeForever(observer)
     }
 
     @Test
-    fun `ui states are emitted in the correct order`() = testCoroutineRule.runBlocking {
+    fun `ui states are emitted in the correct order`() = runBlocking {
         viewModel.getData()
 
-        val states = viewModel.stateLiveData.asFlow().take(2).toList()
-
-        assert(states.size == 2)
-        assert(states[0] == UiState.Loading)
-        assert(states[0] == UiState.Success(expectedResult))
+        verify(observer).onChanged(UiState.Loading)
+        verify(observer).onChanged(UiState.Success(expectedResult))
+        verifyNoMoreInteractions(observer)
     }
 }
